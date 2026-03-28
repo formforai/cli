@@ -197,11 +197,18 @@ func (c *Client) do(method, path string, body []byte) ([]byte, error) {
 	}
 
 	if resp.StatusCode >= 400 {
-		apiErr := &APIError{StatusCode: resp.StatusCode}
-		if jsonErr := json.Unmarshal(data, apiErr); jsonErr != nil {
-			apiErr.Message = fmt.Sprintf("HTTP %d: %s", resp.StatusCode, string(data))
+		var errResp apiErrorResponse
+		if jsonErr := json.Unmarshal(data, &errResp); jsonErr == nil && errResp.Error.Message != "" {
+			return nil, &APIError{
+				StatusCode: resp.StatusCode,
+				Code:       errResp.Error.Code,
+				Message:    errResp.Error.Message,
+			}
 		}
-		return nil, apiErr
+		return nil, &APIError{
+			StatusCode: resp.StatusCode,
+			Message:    fmt.Sprintf("HTTP %d: %s", resp.StatusCode, string(data)),
+		}
 	}
 
 	return data, nil

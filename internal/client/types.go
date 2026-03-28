@@ -65,21 +65,30 @@ type FormResponse struct {
 
 // ListResult is the paginated list of forms.
 type ListResult struct {
-	Forms      []Form `json:"forms"`
-	TotalCount int    `json:"total_count"`
-	HasMore    bool   `json:"has_more"`
+	Forms []Form `json:"data"`
+	Meta  struct {
+		Total  int `json:"total"`
+		Limit  int `json:"limit"`
+		Offset int `json:"offset"`
+	} `json:"meta"`
+}
+
+// apiErrorResponse matches the API's nested error format.
+type apiErrorResponse struct {
+	Error struct {
+		Code    string `json:"code"`
+		Message string `json:"message"`
+		Status  int    `json:"status"`
+	} `json:"error"`
 }
 
 // APIError represents an error response from the API.
 type APIError struct {
-	StatusCode int    `json:"-"`
-	Message    string `json:"error"`
-	Detail     string `json:"detail,omitempty"`
+	StatusCode int
+	Code       string
+	Message    string
 }
 
 func (e *APIError) Error() string {
-	if e.Detail != "" {
-		return e.Message + ": " + e.Detail
-	}
 	return e.Message
 }
